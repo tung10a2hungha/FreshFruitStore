@@ -1,0 +1,24 @@
+# NetBeans & Java Web build outputs
+build/
+dist/
+**/build/
+**/dist/
+**/nbproject/private/
+**/nbproject/Makefile-*.mk
+**/nbproject/Package-*.bash
+
+# IDE & Editor files
+.idea/
+*.iml
+.vscode/
+*.suo
+*.user
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs & temp
+*.log
+*.tmp
