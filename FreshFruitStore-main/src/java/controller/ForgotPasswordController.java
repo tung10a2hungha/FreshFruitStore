@@ -125,10 +125,13 @@ public class ForgotPasswordController extends HttpServlet {
         boolean sent = EmailUtils.sendOtpEmail(user.getEmail(), user.getFullName(), otpCode);
 
         if (!sent) {
-            // Trường hợp chưa cấu hình App Password hoặc lỗi mạng
-            req.setAttribute("warning", "Hệ thống đang chạy chế độ kiểm thử (DEV MODE). Mã OTP đã được in ra cửa sổ Server Console để bạn kiểm tra!");
+            if (EmailUtils.getSenderPassword().isEmpty()) {
+                req.setAttribute("warning", "⚠️ Chưa cấu hình Mật khẩu ứng dụng Gmail (App Password)! Email chưa thể gửi về hòm thư. Vui lòng điền 'email.sender.password' trong email.properties. (Mã OTP mẫu để test: " + otpCode + ")");
+            } else {
+                req.setAttribute("warning", "⚠️ Không thể kết nối tới máy chủ Gmail SMTP (kiểm tra lại kết nối mạng hoặc mật khẩu ứng dụng). (Mã OTP mẫu để test: " + otpCode + ")");
+            }
         } else {
-            req.setAttribute("message", "Mã xác nhận đã được gửi tới email " + maskEmail(user.getEmail()) + ". Vui lòng kiểm tra hộp thư!");
+            req.setAttribute("message", "Mã xác nhận 6 chữ số đã được gửi tới email " + maskEmail(user.getEmail()) + ". Vui lòng kiểm tra hộp thư đến (hoặc mục Spam)!");
         }
 
         req.getRequestDispatcher("/verify-otp.jsp").forward(req, resp);
@@ -157,7 +160,11 @@ public class ForgotPasswordController extends HttpServlet {
 
         boolean sent = EmailUtils.sendOtpEmail(email, username, newOtp);
         if (!sent) {
-            req.setAttribute("warning", "Chưa kết nối được Gmail SMTP. Mã OTP mới đã được in ra console server!");
+            if (EmailUtils.getSenderPassword().isEmpty()) {
+                req.setAttribute("warning", "⚠️ Chưa cấu hình Mật khẩu ứng dụng trong email.properties! (Mã OTP mẫu để test: " + newOtp + ")");
+            } else {
+                req.setAttribute("warning", "⚠️ Không thể kết nối tới Gmail SMTP. (Mã OTP mẫu để test: " + newOtp + ")");
+            }
         } else {
             req.setAttribute("message", "Đã gửi lại mã xác nhận mới tới email của bạn!");
         }

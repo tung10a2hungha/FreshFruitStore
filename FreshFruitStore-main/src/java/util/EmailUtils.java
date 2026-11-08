@@ -24,12 +24,22 @@ public class EmailUtils {
     }
 
     public static synchronized void loadConfig() {
+        // 1. Thử đọc từ classpath (classes/email.properties)
         try (InputStream is = EmailUtils.class.getClassLoader().getResourceAsStream("email.properties")) {
             if (is != null) {
                 configProps.load(is);
             }
         } catch (Exception e) {
-            System.err.println("[EmailUtils] Không thể đọc file email.properties: " + e.getMessage());
+            System.err.println("[EmailUtils] Không thể đọc file email.properties từ classpath: " + e.getMessage());
+        }
+
+        // 2. Thử đọc trực tiếp từ thư mục src/java/email.properties nếu đang chạy local
+        java.io.File srcFile = new java.io.File("FreshFruitStore-main/src/java/email.properties");
+        if (srcFile.exists()) {
+            try (java.io.FileInputStream fis = new java.io.FileInputStream(srcFile)) {
+                configProps.load(fis);
+            } catch (Exception ignored) {
+            }
         }
     }
 
@@ -63,6 +73,7 @@ public class EmailUtils {
      * @return true nếu gửi thành công, false nếu thất bại
      */
     public static boolean sendOtpEmail(String recipientEmail, String recipientName, String otpCode) {
+        loadConfig(); // Luôn nạp cấu hình mới nhất mỗi lần gửi
         if (recipientEmail == null || recipientEmail.trim().isEmpty() || otpCode == null) {
             return false;
         }
