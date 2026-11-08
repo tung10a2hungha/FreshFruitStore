@@ -83,6 +83,10 @@
         <servlet-name>AdminUserController</servlet-name>
         <servlet-class>controller.AdminUserController</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>ForgotPasswordController</servlet-name>
+        <servlet-class>controller.ForgotPasswordController</servlet-class>
+    </servlet>
 
     <!-- Servlet Mappings -->
     <servlet-mapping>
@@ -156,6 +160,10 @@
     <servlet-mapping>
         <servlet-name>AdminUserController</servlet-name>
         <url-pattern>/admin/user/toggle-lock</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ForgotPasswordController</servlet-name>
+        <url-pattern>/forgot-password</url-pattern>
     </servlet-mapping>
 
     <welcome-file-list>

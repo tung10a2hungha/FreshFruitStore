@@ -206,4 +206,91 @@ public class UserDAO extends DBContext {
     public boolean setUserActive(int userId, boolean isActive) {
         return setUserLocked(userId, !isActive);
     }
+
+    // 9. Lấy User theo Email
+    public User getUserByEmail(String email) {
+        if (email == null || connection == null) {
+            return null;
+        }
+        String sql = "SELECT * FROM Users WHERE LOWER(LTRIM(RTRIM(Email))) = LOWER(?)";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setString(1, email.trim());
+            try (ResultSet rs = st.executeQuery()) {
+                if (rs.next()) {
+                    return mapUser(rs);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Lỗi getUserByEmail: " + e.getMessage());
+        }
+        return null;
+    }
+
+    // 10. Lấy User theo Username hoặc Email (rất tiện lợi cho đăng nhập / quên mật khẩu)
+    public User getUserByUsernameOrEmail(String input) {
+        if (input == null || connection == null) {
+            return null;
+        }
+        String trimmed = input.trim();
+        String sql = "SELECT * FROM Users WHERE LOWER(LTRIM(RTRIM(Username))) = LOWER(?) OR LOWER(LTRIM(RTRIM(Email))) = LOWER(?)";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setString(1, trimmed);
+            st.setString(2, trimmed);
+            try (ResultSet rs = st.executeQuery()) {
+                if (rs.next()) {
+                    return mapUser(rs);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Lỗi getUserByUsernameOrEmail: " + e.getMessage());
+        }
+        return null;
+    }
+
+    // 11. Cập nhật mật khẩu theo UserID (băm SHA-256)
+    public boolean updatePasswordByUserId(int userId, String newPassword) {
+        if (connection == null || newPassword == null || newPassword.trim().isEmpty()) {
+            return false;
+        }
+        String sql = "UPDATE Users SET Password = ? WHERE UserID = ?";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setString(1, SecurityUtils.hashPassword(newPassword.trim()));
+            st.setInt(2, userId);
+            return st.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Lỗi updatePasswordByUserId: " + e.getMessage());
+        }
+        return false;
+    }
+
+    // 12. Cập nhật mật khẩu theo Email (băm SHA-256)
+    public boolean updatePasswordByEmail(String email, String newPassword) {
+        if (connection == null || email == null || newPassword == null || newPassword.trim().isEmpty()) {
+            return false;
+        }
+        String sql = "UPDATE Users SET Password = ? WHERE LOWER(LTRIM(RTRIM(Email))) = LOWER(?)";
+        try (PreparedStatement st = connection.prepareStatement(sql)) {
+            st.setString(1, SecurityUtils.hashPassword(newPassword.trim()));
+            st.setString(2, email.trim());
+            return st.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Lỗi updatePasswordByEmail: " + e.getMessage());
+        }
+        return false;
+    }
+
+    // Helper map ResultSet sang đối tượng User
+    private User mapUser(ResultSet rs) throws SQLException {
+        User u = new User();
+        u.setUserId(rs.getInt("UserID"));
+        u.setUsername(rs.getString("Username"));
+        u.setPassword(rs.getString("Password"));
+        u.setFullName(rs.getString("FullName"));
+        u.setEmail(rs.getString("Email"));
+        u.setPhone(rs.getString("Phone"));
+        u.setAddress(rs.getString("Address"));
+        u.setRole(rs.getString("Role") != null ? rs.getString("Role").trim() : "Customer");
+        u.setLocked(!rs.getBoolean("IsActive"));
+        return u;
+    }
 }

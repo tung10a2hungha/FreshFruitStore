@@ -11,6 +11,10 @@ if (!(Test-Path $outDir)) {
 & javac -encoding UTF-8 -cp $cp -d $outDir $srcFiles
 if ($LASTEXITCODE -eq 0) {
     Write-Output "COMPILATION SUCCESS"
+    # Copy properties and resource files from src to classes
+    Get-ChildItem -Path ".\FreshFruitStore-main\src\java" -Filter "*.properties" -Recurse | ForEach-Object {
+        Copy-Item -Path $_.FullName -Destination $outDir -Force
+    }
     # Copy web assets to build directory
     Copy-Item -Path ".\FreshFruitStore-main\web\*" -Destination ".\FreshFruitStore-main\build\web\" -Recurse -Force
     Write-Output "WEB ASSETS SYNCED"
